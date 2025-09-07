@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}تحذيرات الاشتراكات{% endblock %}
+
+{% block content %}
+<h1 class="mt-4">الاشتراكات على وشك الانتهاء (<= 5 أيام)</h1>
+<table class="table table-bordered mt-4">
+    <thead>
+        <tr>
+            <th>العميل</th>
+            <th>رقم العميل</th>
+            <th>الصفحة</th>
+            <th>تاريخ الانتهاء</th>
+            <th>عدد الأيام المتبقية</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sub in expiring %}
+        <tr>
+           <td>{{ sub.client_page.client_platform.client.name }}</td>
+            <td>{{ sub.client_page.client_platform.client.number }}</td>
+            <td>{{ sub.client_page.name }}</td>
+            <td>{{ sub.end_of_sub }}</td>
+            <td>{{ sub.days_left() }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h1 class="mt-4">الاشتراكات قرب حد الطلبات</h1>
+<table class="table table-bordered mt-4">
+    <thead>
+        <tr>
+            <th>العميل</th>
+            <th>رقم العميل</th>
+            <th>الصفحة</th>
+            <th>الطلبات المستخدمة</th>
+            <th>حد الطلبات الأقصى</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sub in near_limit %}
+        <tr>
+            <td>{{ sub.client_page.client.name }}</td>
+            <td>{{ sub.client_page.client.number }}</td>
+            <td>{{ sub.client_page.name }}</td>
+            <td>{{ sub.used_requests }}</td>
+            <td>{{ sub.package.number_of_requests }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

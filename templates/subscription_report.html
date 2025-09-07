@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}تقارير الاشتراكات{% endblock %}
+
+{% block content %}
+<h1 class="mt-4">تقارير الاشتراكات</h1>
+
+<form method="POST" class="mb-4">
+    <label>من: <input type="date" name="start_date" value="{{ start_date }}"></label>
+    <label>إلى: <input type="date" name="end_date" value="{{ end_date }}"></label>
+    <button type="submit" class="btn btn-primary">توليد التقرير</button>
+</form>
+
+{% if subscriptions %}
+    <h2>إجمالي الأرباح: ${{ total_profit }}</h2>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>العميل</th>
+                <th>رقم العميل</th>
+                <th>الصفحة</th>
+                <th>الباقة</th>
+                <th>سعر الباقة</th>
+                <th>تاريخ الاشتراك</th>
+                <th>تاريخ الانتهاء</th>
+                <th>الطلبات المستخدمة</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in subscriptions %}
+            <tr>
+                <td>{{ s.client_page.client_platform.client.name }}</td>
+                <td>{{ s.client_page.client_platform.client.number }}</td>
+                <td>{{ s.client_page.name }}</td>
+                <td>{{ s.package.name }}</td>
+                <td>{{ s.package.price }}</td>
+                <td>{{ s.sub_date }}</td>
+                <td>{{ s.end_of_sub }}</td>
+                <td>{{ s.used_requests }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>لا توجد اشتراكات للفترة المحددة.</p>
+{% endif %}
+{% endblock %}

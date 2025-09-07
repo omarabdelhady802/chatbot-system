@@ -164,6 +164,21 @@ class Subscription(db.Model):
             ['client_pages.client_id', 'client_pages.platform_id', 'client_pages.page_id']
         ),
     )
+    def days_left(self):
+        """Return number of days left until subscription ends"""
+        today = datetime.date.today()
+        return (self.end_of_sub - today).days
+
+    def is_expiring_soon(self, days=5):
+        """Check if subscription ends within `days`"""
+        return 0 <= self.days_left() <= days
+
+    def is_requests_near_limit(self, threshold=10):
+        """Check if used requests are near the limit (threshold)"""
+        if self.package.number_of_requests is not None:
+            remaining = self.package.number_of_requests - self.used_requests
+            return remaining <= threshold
+        return False
     def is_active(self):
         """Check if subscription is still valid"""
         from datetime import date
@@ -194,6 +209,7 @@ class SenderSummary(db.Model):
     page_id = db.Column(db.Integer, nullable=False)  # only link to page
     sender_id = db.Column(db.String(255), nullable=False)  # user ID
     summary_text = db.Column(db.Text, nullable=False)
+    bot_replay = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     expires_at = db.Column(db.DateTime, default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))

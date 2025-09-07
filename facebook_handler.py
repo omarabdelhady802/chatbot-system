@@ -72,6 +72,8 @@ class FacebookWebhookHandler:
                     if messaging_event.get("message"):
                         sender_id = messaging_event["sender"]["id"]
                         message_text = messaging_event["message"].get("text", "")
+                        if str(sender_id) == str(page_id):
+                            continue
                         events.append({
                             "page_id": page_id,
                             "event_type": "message",

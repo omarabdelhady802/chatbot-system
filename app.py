@@ -11,7 +11,7 @@ from flask_migrate import Migrate   # NEW
 
 # configrations app
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456789@localhost:3306/chat-bot'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = False  # Disable auto-commit
@@ -606,9 +606,9 @@ def webhook():
         events = fb_handler.parse_webhook_event(data)
         from reply_manager import LLMManager
         import os
-        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+        API_KEY = os.getenv("API_KEY")
 
-        reply_manager = LLMManager(api_key=OPENAI_API_KEY)
+        reply_manager = LLMManager(api_key=API_KEY)
         for event in events:
             page = ClientPage.query.filter_by(page_id=event["page_id"]).first()
             if not page or not page.is_active:
@@ -745,6 +745,75 @@ def delete_package(package_id):
     flash('Package deleted successfully', 'success')
     return redirect(url_for('list_packages'))
 
+def add_subscription(client_id, platform_id, page_id, package_id, sub_date, end_of_sub):
+    # Step 1: Deactivate old subscriptions for this page
+    old_subs = Subscription.query.filter_by(
+        client_id=client_id,
+        platform_id=platform_id,
+        page_id=page_id
+    ).all()
+
+    for sub in old_subs:
+        sub.end_of_sub = date.min  # Optional: mark it ended today
+        db.session.add(sub)
+
+    # Step 2: Add new subscription
+    new_sub = Subscription(
+        client_id=client_id,
+        platform_id=platform_id,
+        page_id=page_id,
+        package_id=package_id,
+        sub_date=sub_date,
+        end_of_sub=end_of_sub,
+        used_requests=0
+    )
+    db.session.add(new_sub)
+    db.session.commit()
+
+@app.route('/subscriptions/report_page', methods=['GET', 'POST'])
+def subscriptions_report_page():
+    subs = []
+    total_profit = 0
+
+    start_date = end_date = None
+
+    if request.method == 'POST':
+        start_date_str = request.form.get('start_date')
+        end_date_str = request.form.get('end_date')
+
+        if start_date_str and end_date_str:
+            start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+            subs = Subscription.query.filter(
+                Subscription.sub_date >= start_date,
+                Subscription.sub_date <= end_date
+            ).all()
+
+            # Sum total profit
+            total_profit = sum(s.package.price for s in subs)
+
+    return render_template(
+        'subscription_report.html',
+        subscriptions=subs,
+        total_profit=total_profit,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+
+@app.route('/subscriptions/expiring')
+def expiring_subscriptions():
+    subs = Subscription.query.all()
+    expiring = [s for s in subs if s.is_active() and s.is_expiring_soon()]
+    near_limit = [s for s in subs if s.is_active() and s.is_requests_near_limit()]
+
+    return render_template(
+        'subscriptions.html',
+        expiring=expiring,
+        near_limit=near_limit
+    )
+
 
 @app.route('/clients/<int:client_id>/platforms/<int:platform_id>/pages/<int:page_id>/subscriptions/new', methods=['GET', 'POST'])
 def create_subscription_for_page(client_id, platform_id, page_id):
@@ -766,18 +835,19 @@ def create_subscription_for_page(client_id, platform_id, page_id):
         end_of_sub = sub_date
         if hasattr(package, 'number_of_days') and package.number_of_days:
             end_of_sub = sub_date + timedelta(days=package.number_of_days)
+        add_subscription(client_id=client_id,platform_id=platform_id,
+                         page_id=page_id,package_id=package_id,sub_date=sub_date,end_of_sub=end_of_sub)
+        # new_sub = Subscription(
+        #     package_id=package.id,
+        #     sub_date=sub_date,
+        #     end_of_sub=end_of_sub,
+        #     client_id=client_id,
+        #     platform_id=platform_id,
+        #     page_id=page_id
+        # )
 
-        new_sub = Subscription(
-            package_id=package.id,
-            sub_date=sub_date,
-            end_of_sub=end_of_sub,
-            client_id=client_id,
-            platform_id=platform_id,
-            page_id=page_id
-        )
-
-        db.session.add(new_sub)
-        db.session.commit()
+        # db.session.add(new_sub)
+        # db.session.commit()
         flash("Subscription added successfully", "success")
         return redirect(url_for('client_platform_pages', client_id=client_id, platform_id=platform_id))
 
