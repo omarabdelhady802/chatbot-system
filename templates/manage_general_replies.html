@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}منشورات {% endblock %}
+
+{% block content %}
+<h2>إدارة الردود العامة للصفحة {{ page.name }}</h2>
+
+<ul class="list-group mb-3">
+{% for r in reps %}
+    <li class="list-group-item d-flex justify-content-between">
+        <div>
+            <strong>{{ r.key }}</strong><br>
+            <small>{{ r.val }}</small>
+        </div>
+        <a href="{{ url_for('delete_general_reply', rep_id=r.id) }}" class="btn btn-danger btn-sm">حذف</a>
+    </li>
+{% endfor %}
+</ul>
+
+<form method="POST">
+    <div class="mb-2">
+        <input type="text" name="key" class="form-control" placeholder="الكلمة المفتاحية" required>
+    </div>
+    <div class="mb-2">
+        <textarea name="val" class="form-control" placeholder="النص" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">إضافة رد عام جديد</button>
+</form>
+
+
+{% endblock %}

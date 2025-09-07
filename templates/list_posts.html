@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}منشورات {% endblock %}
+
+{% block content %}
+<h2>المنشورات للصفحة {{ page.name }}</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>نوع الرد</th>
+            <th>إدارة</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for post in posts %}
+        <tr>
+            <td>{{ post.post_id }}</td>
+            <td>
+              <form method="POST" 
+      action="{{ url_for('toggle_post_specific', client_id=post.client_id, platform_id=post.platform_id, page_id=post.page_id, post_id=post.post_id) }}" 
+      style="display:inline;">
+    <button type="submit" class="btn {{ 'btn-warning' if post.is_specific else 'btn-secondary' }}">
+        {{ 'جعل عام' if post.is_specific else 'جعل محدد' }}
+    </button>
+</form>
+
+            </td>
+            <td>
+                <a href="{{ url_for('manage_specific_replies', post_id=post.post_id,client_id=page.client_id,
+                    platform_id=page.platform_id,
+                    page_id=page.page_id) }}" class="btn btn-primary btn-sm">
+                    إدارة الردود
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<form method="POST">
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="is_specific" id="is_specific">
+        <label class="form-check-label" for="is_specific">منشور محدد؟</label>
+    </div>
+    <div class="form-group">
+                <label  for="post_id">post id</label>
+
+        <input class="form-control" type="number" name="post_id" required id="post_id">
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">إضافة منشور</button>
+</form>
+</br>
+
+<a href="{{ url_for('manage_general_replies',
+                    client_id=page.client_id,
+                    platform_id=page.platform_id,
+                    page_id=page.page_id) }}"
+   class="btn btn-secondary">
+    إدارة الردود العامة
+</a>
+{% endblock %}

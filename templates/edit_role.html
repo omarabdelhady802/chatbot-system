@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="mt-4">تعديل بيانات صلاحيه</h1>
+    <form method="post" action="{{ url_for('edit_role', role_id=role.id) }}">
+        <div class="form-group">
+            <label for="name">اسم الصلاحيه :</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ role.role_name }}" required>
+        </div>
+     
+        
+        <button type="submit" class="btn btn-primary">حفظ</button>
+    </form>
+{% endblock %}

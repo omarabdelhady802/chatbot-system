@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Add Subscription{% endblock %}
+
+{% block content %}
+<h2>Add Subscription for {{ page.name }}</h2>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="package_id">Select Package</label>
+        <select name="package_id" id="package_id" class="form-control">
+            {% for pkg in packages %}
+            <option value="{{ pkg.id }}">{{ pkg.name }} - {{ pkg.number_of_days }} days</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Add Subscription</button>
+</form>
+{% endblock %}

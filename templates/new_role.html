@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="mt-4">اضافه صلاحيه</h1>
+    <form method="post" action="{{ url_for('new_role') }}">
+        <div class="form-group">
+            <label for="name">اسم الصلاحيه</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <button type="submit" class="btn btn-primary">اضافه</button>
+    </form>
+{% endblock %}

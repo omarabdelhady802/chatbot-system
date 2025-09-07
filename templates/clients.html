@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}العملاء{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">عملاء</h1>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>الاسم</th>
+                <th>الرقم</th>
+                <th>منصات العميل</th>
+                <th>تعديل</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+                <tr>
+                    <td>{{ client.id }}</td>
+                    <td>{{ client.name }}</td>
+                    <td>{{ client.number }}</td>
+                    <td> 
+                    <form method="لثف" action="{{ url_for('client_platforms' , client_id = client.id) }}">
+                    <button type="submit" class="btn btn-primary">منصات العميل</button>
+                    </form>
+                    </td>
+                    <td><a href="{{ url_for('edit_client', client_id=client.id) }}">تعديل</a> </td>
+                    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a class="btn btn-primary" href="{{ url_for('new_client') }}">اضافه عميل</a>
+{% endblock %}

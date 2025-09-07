@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="mt-4">اضافه عميل</h1>
+    <form method="post" action="{{ url_for('new_client') }}">
+        <div class="form-group">
+            <label for="name">اسم العميل:</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="number"> الرقم:</label>
+            <input type="tel" class="form-control" id="number" name="number" required>
+        </div>
+    
+        <button type="submit" class="btn btn-primary">اضافه</button>
+    </form>
+{% endblock %}

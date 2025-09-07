@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Edit Page Description{% endblock %}
+
+{% block content %}
+<h1>Edit Description for Page: {{ page.name }}</h1>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="description">Page Description</label>
+        <textarea name="description" id="description" class="form-control" rows="5" required>{{ page.description or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Save Description</button>
+</form>
+{% endblock %}

@@ -1,0 +1,4 @@
+🔄 3. اسحب التحديثات يدوي
+cd ~/chatbot-system
+git pull origin main
+systemctl restart chatbot.service

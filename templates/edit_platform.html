@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="mt-4">تعديل بيانات منصه</h1>
+    <form method="post" action="{{ url_for('edit_platform', platform_id=platform.id) }}">
+        <div class="form-group">
+            <label for="name">اسم المنصه :</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ platform.platform_name }}" required>
+        </div>
+     
+        
+        <button type="submit" class="btn btn-primary">حفظ</button>
+    </form>
+{% endblock %}

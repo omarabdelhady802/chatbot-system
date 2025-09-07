@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}الصلاحيات{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">صلاحيات</h1>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>الصلاحيه</th>
+                <th>تعديل</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for role in roles %}
+                <tr>
+                    <td>{{ role.id }}</td>
+                    <td>{{ role.role_name }}</td>
+                    <td><a href="{{ url_for('edit_role', role_id=role.id) }}">تعديل</a></td>
+                    
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a class="btn btn-primary" href="{{ url_for('new_role') }}">اضافه صلاحيه</a>
+{% endblock %}

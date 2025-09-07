@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}الصفحات {{client_platform.client.name}}{% endblock %}
+
+{% block content %}
+   <h1>Pages for {{ client_platform.client.name }} on {{ client_platform.platform.platform_name }}</h1>
+
+<form method="POST">
+  
+    <div class="form-group">
+        <label for="web_hook">web hook link</label>
+        <input type="text" name="web_hook" id="web_hook" class="form-control" readonly value="194.5.157.240:500/webhook" required>
+    </div>
+    <div class="form-group">
+        <label for="webhook_token">app token for web hook</label>
+        <input type="text" name="webhook_token" id="webhook_token" readonly value="sef8sdfajf9sfj0arjr9ar" class="form-control" required>
+    </div>
+    <div class="form-group">
+    <label for="description">Page Description </label>
+    <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+</div>
+
+      <div class="form-group">
+        <label for="page_id">Page ID</label>
+        <input type="text" name="page_id" id="page_id" class="form-control" required>
+    </div>
+      <div class="form-group">
+        <label for="name">اسم الصفحه</label>
+        <input type="text" name="name" id="name" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="page_token">Page Token</label>
+        <input type="text" name="page_token" id="page_token" class="form-control" required>
+    </div>
+
+    
+
+    
+
+    <button type="submit" class="btn btn-primary mt-3">Add Page</button>
+</form>
+
+
+<hr>
+<h2>Existing Pages</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Page ID</th>
+            <th>Page Name</th>
+            <th>Active</th>
+            <th>Manage description</th>
+            <th>End Date</th>
+            <th>page description</th>
+            <th>Latest Subscription</th>
+            <th>Posts</th>
+            <th>Subscriptions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for page in pages %}
+        <tr>
+            <td>{{ page.page_id }}</td>
+            <td>{{ page.name }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('toggle_page_active',
+                    client_id=page.client_id,
+                    platform_id=page.platform_id,
+                    page_id=page.page_id) }}">
+                    <button type="submit" class="btn {{ 'btn-danger' if page.is_active else 'btn-success' }}">
+                        {{ 'Deactivate' if page.is_active else 'Activate' }}
+                    </button>
+                </form>
+            </td>
+            <td>
+                <a href="{{ url_for('edit_page_description',
+                    client_id=page.client_id,
+                    platform_id=page.platform_id,
+                    page_id=page.page_id) }}" class="btn btn-secondary">
+                    Manage description
+                </a>
+            </td>
+            <td>{{ page.end_date or 'N/A' }}</td>
+            <td>{{ page.description }}</td>
+
+            <!-- ✅ Show latest subscription -->
+            <td>
+                {% if page.subscriptions %}
+                    {% set latest = page.subscriptions|sort(attribute="sub_date")|last %}
+                    {{ latest.package.name }} <br>
+                    <small>(ends: {{ latest.end_of_sub }})</small>
+                {% else %}
+                    <span class="text-muted">No subscription</span>
+                {% endif %}
+            </td>
+
+            <td>
+                <a href="{{ url_for('list_posts',
+                    client_id=page.client_id,
+                    platform_id=page.platform_id,
+                    page_id=page.page_id) }}" class="btn btn-secondary">
+                    Manage Posts
+                </a>
+            </td>
+
+            <td>
+                <a href="{{ url_for('create_subscription_for_page',
+                    client_id=page.client_id,
+                    platform_id=page.platform_id,
+                    page_id=page.page_id) }}" class="btn btn-info">
+                    Add Subscription
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

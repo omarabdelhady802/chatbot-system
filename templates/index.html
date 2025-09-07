@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block h %} 
+<style>
+    /* Custom styles for the body */
+    body {   
+        background-image: url('static/images/new.avif'); /* Background image */
+        background-size: cover; /* Make background cover the entire screen */
+        background-position: center; /* Center the image */
+    }
+
+    .login-container {
+        max-width: 400px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: rgba(255, 255, 255, 0.5); /* Adjust the alpha channel for more transparency (0.3 is 70% transparent white) */
+        backdrop-filter: blur(20px); /* Add a backdrop filter for a blur effect */
+        border-radius: 10px;
+        margin: auto; /* Center the container horizontally */
+        
+    }
+    .btn-primary {
+        background-color: rgba(63, 96, 243, .6);
+        border: none;
+        transition: all 0.3s ease-in-out;
+    }
+    .btn-primary:hover {
+        background-color: rgba(63, 96, 243, 1);
+    }
+    .btn-primary:focus {
+        transition: none;
+        background-color: #5775fc !important;
+        box-shadow: none !important;
+    }
+</style> 
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <!-- Your login form goes here -->
+            <div class="login-container">
+                <form method="post"  action="{{ url_for('index') }}">
+                    <div class="form-group">
+                        <label for="username">اسم المستخدم:</label>
+                        <input type="text" class="form-control" id="username" name ="username" placeholder="ادخل اسم المستخدم">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">كلمة المرور:</label>
+                        <input type="password" class="form-control" id="password" name ="password" placeholder="ادخل كلمة المرور">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="border: none;">تسجيل الدخول</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="mt-4">اضافه ملاحظه جديده</h1>
+    <form method="post" action="{{ url_for('new_note') }}">
+        <div class="form-group">
+            <label for="name">الملاحظه</label>
+            <input type="text" class="form-control" id="note" name="note" required>
+        </div>       
+        <button type="submit" class="btn btn-primary">اضافه</button>
+    </form>
+{% endblock %}

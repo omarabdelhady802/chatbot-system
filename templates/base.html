@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Clinic Management System{% endblock %}</title>
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <style>
+        html, body {
+            height: 100%; /* Full viewport height */
+            margin: 0; /* Remove default margin */
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+        }
+
+        .container {
+            max-width: 960px;  /* Limit max width of container */
+            margin: 0 auto;  /* Center container horizontally */
+            padding-top: 100px;
+        }
+
+        /* Content area: it will fill the remaining space and push footer down */
+        .content {
+            flex: 1; /* Make content area grow to fill the available space */
+        }
+       
+        .alert-container {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1000;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .alert {
+            margin-bottom: 10px;
+            padding: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .navbar {
+            opacity: 0.8;
+            background-color: #2D2757 !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
+            border-radius: 0px 0px 2px 2px;
+        }
+        .footer {
+            opacity: 0.9;
+            background-color: #2D2757 !important; /* Matching navbar background */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .15); /* Shadow on top */
+            border-radius: 2px 2px 0 0; /* Rounded corners at the top */
+            padding: 10px 0; /* Space inside footer */
+            text-align: center; /* Center-align text */
+            margin-top: 6px;
+            min-width: 100% !important;
+        }
+        
+        .footer a {
+            color: #009dff; /* Gold color for links */
+            text-decoration: none; /* Remove underline */
+        }
+        
+        .footer a:hover {
+            text-decoration: underline; /* Add underline on hover */
+            color: #FFA500; /* Orange color on hover */
+        }
+        
+    </style>
+    {% block h %} {% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="#"><img src="{{ url_for('static', filename='images/لوجو.png') }}" alt="Dental Clinic" width="150" height="70"></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            {% if current_user.is_authenticated %}
+            
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('clients') }}">عملاء</a>
+                </li>
+            
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('list_packages') }}">الباقات</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('users') }}">مستخدمين</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('notes') }}">ملاحظات</a>
+                </li>
+             
+                    
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('platforms') }}">منصات</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('roles') }}">صلاحيات</a>
+                </li>
+             
+                    
+                    
+            {% endif %}
+            {% if current_user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">تسجيل خروج</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">تسجيل دخول</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<div class="container content" style="padding-top: 100px">
+    <!-- Display flashed messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        <div class="alert-container" style="padding-top: 100px">
+            {% for category, message in messages %}
+                {% if category == 'success' %}
+                    <div class="alert alert-success">
+                {% elif category == 'info' %}
+                    <div class="alert alert-info">
+                {% elif category == 'danger' %}
+                    <div class="alert alert-warning">
+                {% elif category == 'error' %}
+                    <div class="alert alert-danger">
+                {% endif %}
+                <ul>
+                    <li>{{ message }}</li>
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</div>
+<footer class="footer bg-dark text-light">
+    <div class="container text-center py-2">
+        <p class="mb-1">Developed by <strong><a  target="_blank" href="https://next-gen-solutions.com/">NextGen Solutions</a></strong></p>
+        <p class="mb-0">Contact us on WhatsApp: 
+            <a href="https://wa.me/201019894388"   target="_blank">
+                +20 10 19894388
+            </a>
+        </p>    </div>
+</footer>
+
+<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
+<script src="{{ url_for('static', filename='js/jquery-3.2.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+<script>
+    // Wait for the DOM to be fully loaded
+    document.addEventListener("DOMContentLoaded", function() {
+        // Select all elements with the class 'alert'
+        var alerts = document.querySelectorAll('.alert');
+
+        // Loop through each alert element
+        alerts.forEach(function(alert) {
+            // Set a timeout to hide the alert after 3 seconds
+            setTimeout(function() {
+                alert.style.display = 'none';
+            }, 5000);
+        });
+    });
+</script>
+
+
+</body>
+</html>

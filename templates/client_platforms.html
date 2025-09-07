@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}منصات العميل {{client.name}}{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">المنصات</h1>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>اسم المنصه</th>
+                <th>الصفحات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for platform in client_platforms %}
+                <tr>
+                    <td>{{ platform.platform.id }}</td>
+                    <td>{{ platform.platform.platform_name }}</td>  
+                      <td> 
+                    <form method="get" action="{{ url_for('client_platform_pages' , client_id = client.id,platform_id=platform.platform.id) }}">
+                    <button type="submit" class="btn btn-primary">الصفحات</button>
+                    </form>
+                    </td>                  
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <h1 class="mt-4">اضافه منصه</h1>
+    <form method="post" action="{{ url_for('client_platforms' , client_id = client.id) }}">
+
+    <div class="form-group">
+        <label for="platform_id">المنصه</label>
+        <select name="platform_id" id="platform_id" class="form-control" required>
+            <option value="" disabled selected>المنصات</option>
+            {% for platform in platforms %}
+                <option value="{{ platform.id }}">{{ platform.platform_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+        <button type="submit" class="btn btn-primary">اضافه</button>
+    </form>
+
+{% endblock %}
