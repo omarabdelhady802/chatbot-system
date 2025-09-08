@@ -1,9 +1,12 @@
-from datetime import date, timedelta
+from datetime import date, time, timedelta
+import threading
+from time import sleep
 from flask import Flask, jsonify,render_template, request, redirect, url_for, request, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from models import *
 from facebook_handler import FacebookWebhookHandler
 from flask_migrate import Migrate   # NEW
+import time
 
 
 
@@ -594,6 +597,24 @@ def delete_note(note_id):
 
 
 fb_handler = FacebookWebhookHandler()
+# Temporary store to track processed requests
+processing_requests = set()
+lock = threading.Lock()
+
+import traceback
+
+def remove_from_set(request_id, timeout=200):
+    """Remove request_id after timeout to prevent memory leak"""
+    try:
+        time.sleep(timeout)
+        with lock:
+            processing_requests.discard(request_id)
+        print(f"✅ Removed request_id from set: {request_id}")
+    except Exception as e:
+        print(f"⚠️ Error in remove_from_set thread: {e}")
+        traceback.print_exc()
+
+
 
 @app.route("/webhook", methods=["GET", "POST"])
 def webhook():
@@ -603,6 +624,35 @@ def webhook():
 
     if request.method == "POST":
         data = request.get_json()
+
+    # ✅ تأمين request_id
+        try:
+            entry = data.get("entry", [])[0]
+            page_id = entry.get("id")
+            timestamp = entry.get("time")
+
+            messaging_event = entry.get("messaging", [{}])[0]
+            change_event = entry.get("changes", [{}])[0]
+
+            if "message" in messaging_event and "mid" in messaging_event["message"]:
+                request_id = messaging_event["message"]["mid"]   # ثابت من Meta
+            elif "comment_id" in change_event.get("value", {}):
+                request_id = change_event["value"]["comment_id"] # ثابت من Meta
+            else:
+                # fallback ثابت (لو ملقيناش mid ولا comment_id)
+                request_id = f"{page_id}_{timestamp}"
+
+        except Exception as e:
+            print("⚠️ Error extracting request_id:", e)
+            request_id = str(data)
+
+        # ✅ Check for duplicates
+        with lock:
+            if request_id in processing_requests:
+                return "DUPLICATE_EVENT", 200
+            else:
+                processing_requests.add(request_id)
+                threading.Thread(target=remove_from_set, args=(request_id,)).start()
         events = fb_handler.parse_webhook_event(data)
         from reply_manager import LLMManager
         import os
@@ -671,6 +721,7 @@ def webhook():
                                     fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)                           
 
         return "EVENT_RECEIVED", 200
+
 
 
 # manage billing
