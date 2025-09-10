@@ -8,7 +8,7 @@
   
     <div class="form-group">
         <label for="web_hook">web hook link</label>
-        <input type="text" name="web_hook" id="web_hook" class="form-control" readonly value="http://194.5.157.240:5000/webhook" required>
+        <input type="text" name="web_hook" id="web_hook" class="form-control" readonly value="https://www.haded.org/webhook" required>
     </div>
     <div class="form-group">
         <label for="webhook_token">app token for web hook</label>
@@ -51,7 +51,7 @@
             <th>Active</th>
             <th>Manage description</th>
             <th>End Date</th>
-            <th>page description</th>
+            <!-- <th>page description</th> -->
             <th>Latest Subscription</th>
             <th>Posts</th>
             <th>Subscriptions</th>
@@ -81,7 +81,7 @@
                 </a>
             </td>
             <td>{{ page.end_date or 'N/A' }}</td>
-            <td>{{ page.description }}</td>
+            <!-- <td>{{ page.description }}</td> -->
 
             <!-- ✅ Show latest subscription -->
             <td>

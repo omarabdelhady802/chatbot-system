@@ -29,31 +29,82 @@ class LLMManager:
 
             # Build strict system prompt
             system_prompt = f"""
-                    You are an expert sales assistant. Always respond in the following **strict JSON format**. Do NOT use raw double quotes (") inside the output—escape any quotes as \\". 
+You are an AI sales chat assistant. 
+You must act like a **real salesperson chatting with a client**.
 
-                    {{
-                    "reply": "<Reply to the user in the same language, concise, professional, sales-oriented, including all information provided by the user, no extra info>",
-                    "new_summary": "<Update the factual summary for this user, including all information the user provided, concise, in English, include all info>"
-                    }}
+🔒 RULES (follow strictly):
+1. Collect requirements from the user and try to schedule a meeting/call.
+2. Always respond in a **professional, persuasive, and sales-oriented tone**.
+3. If the user requests a specific date, reply ONLY with:
+   "I will check availability and text you again." 
+   **Do not confirm or negotiate dates**.
+   **Do not offer or negotiate dates**.
+4. Reply must be in the SAME language as the user (English or Arabic).
+5. "new_summary" must always be in ENGLISH and must include ALL details 
+   - It must be a **fresh regenerated summary** of the entire conversation so far.
+   - Include ALL important details from:
+     - the previous summary,
+     - the last bot reply,
+     - and the summary of current user message.
+   - Write it as one clean, concise, factual summary (not just an addition).
+6. Do not invent prices or services not in the Page description.
+7. Your output MUST be a valid JSON object that matches the schema below. 
+   Replace all values with meaningful content — NEVER placeholders.
 
-                    Rules:
-                    1. Your goal is to **collect requirements from the user** and **schedule a meeting or call**.
-                    2. Always respond in a **professional, persuasive, and sales-oriented tone**.
-                    3. If the user requests a **specific date for the meeting**, reply: \\"I will check availability and text you again.\\" Do not confirm the date immediately.
-                    4. Keep replies short and clear while including **all user-provided info**.
-                    5. Always escape quotes inside values with \\". Do not use raw " inside strings.
-                    6. Do not omit any information in new_summary. Include both current input and previous summary fully.
-                    7. Never provide prices, assumptions, or info not given by the user.
-                    8. Reply must be in the **same language** as the user message (English or Arabic only).
-                    9. Validate JSON internally before returning; never return incomplete or broken JSON.
-                    10. Do not include extra explanations or text outside the JSON.
+Page description: {page_description}
+Previous summary: {previous_summary}
+User message: {user_message}
+Last bot reply: {bot_replay}
 
-                    Page description: {page_description}
-                    Previous summary: {previous_summary}
-                    User message: {user_message}
-                    Last bot replay: {bot_replay}
-                    """
-                    
+📑 Schema (strictly follow):
+{{
+  "reply": "Chat reply to the user in SAME language (short, persuasive, professional)",
+  "new_summary": "Updated factual summary in ENGLISH with ALL details"
+}}
+"""
+
+
+
+        # JSON schema for reply + new_summary
+            schema = {
+    "name": "sales_chat_schema",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "reply": {
+                "type": "string",
+                "description": (
+                    "Chat reply to the user in the SAME language they used "
+                    "(English or Arabic only). "
+                    "This is a **chat message**, not an explanation. "
+                    "Tone: professional, persuasive, short, and sales-oriented. "
+                    "If the user requests a specific date for a meeting, "
+                    "the reply MUST be exactly: 'I will check availability and text you again.' "
+                    "Never confirm or negotiate dates. "
+                    "Keep reply concise (1–3 sentences max)."
+                )
+            },
+            "new_summary": {
+                "type": "string",
+                "description": (
+                    "Updated factual summary in ENGLISH only. "
+                    "This is NOT a reply, but a background memory. "
+                    "It must include ALL details from: "
+                    "- The current user input "
+                    "- The previous summary "
+                    "- The last bot reply "
+                    "Do not omit anything. "
+                    "Summary must be concise, factual, assumption-free, "
+                )
+            }
+        },
+        "required": ["reply", "new_summary"],
+        "additionalProperties": False
+    },
+    "strict": True
+}
+
+        
             API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
             try:
                 response = requests.post(
@@ -61,35 +112,64 @@ class LLMManager:
                     headers={"Authorization": f"Bearer {self.api_key}"},
                     json={
                         "model": "accounts/fireworks/models/deepseek-v3p1",   # أو deepseek-reasoner لو عايز
-                        "messages": [{"role": "system", "content": system_prompt}]
+                        "messages": [{"role": "system", "content": system_prompt}],
+                        "temperature": 0,
+                    "response_format": {
+            "type": "json_schema",
+            "json_schema": schema
+        }    
                     },
-                    timeout=40
+                    
+                    timeout=40,
                 )
 
                 data = response.json()
-                raw_output = data['choices'][0]['message']['content']
-            except:
-                return "سيتم التواصل معكم في اقرب وقت"
+                parsed = data["choices"][0]["message"]['content']
+                parsed = json.loads(parsed)
 
-            reply, new_summary = self._handle_llm_response(raw_output, previous_summary, user_message)
+                if parsed:
+                    replay = parsed.get("reply") or parsed.get("response", "")
+                    new_summary = parsed.get("new_summary", "")
+                else:
+                    try:
+                        raw_output = data['choices'][0]['message']['content']
+
+                        # 1) Try extracting last JSON object
+                        matches = re.findall(r"\{.*?\}", raw_output, re.DOTALL)
+                        if matches:
+                            last_json = matches[-1]
+                            parsed = json.loads(last_json)
+                            print("✅ Extracted JSON:", parsed)
+                            replay = parsed.get("reply") or parsed.get("bot_reply") or parsed.get("response", "")
+                            new_summary = parsed.get("new_summary", "")
+                     
+
+                    except Exception as e:
+                        print("❌ JSON parse error:", e)
+                        replay = "سيتم التواصل معكم في اقرب وقت"
+                        new_summary = previous_summary
+            except:
+                      print("سيتم التواصل معكم في اقرب وقت")
+                      return "سيتم التواصل معكم في اقرب وقت"              
+            # reply, new_summary = self._handle_llm_response(raw_output, previous_summary, user_message)
 
             # Save or update summary in DB
             if summary_record:
                 summary_record.summary_text = new_summary
-                summary_record.bot_replay = reply
+                summary_record.bot_replay = replay
                 summary_record.expires_at = datetime.utcnow() + timedelta(days=30)
             else:
                 summary_record = SenderSummary(
                     page_id=page_id,
                     sender_id=sender_id,
                     summary_text=new_summary,
-                    bot_replay = reply,
+                    bot_replay = replay,
                     expires_at=datetime.utcnow() + timedelta(days=30)
                 )
                 db.session.add(summary_record)
             
             db.session.commit()
-            return reply
+            return replay
        
 
     import re

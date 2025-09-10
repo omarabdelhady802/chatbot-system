@@ -549,13 +549,16 @@ def edit_page_description(client_id, platform_id, page_id):
 
     if request.method == "POST":
         description = request.form.get("description", "").strip()
+        token = request.form.get("token", "").strip()
         page.description = description
+        page.page_token = token
         try:
             db.session.commit()
             flash("Description updated successfully!", "success")
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating description: {str(e)}", "danger")
+        return redirect(url_for('client_platform_pages' , client_id = client_id,platform_id=platform_id))
 
     return render_template("edit_description.html", page=page)
 
@@ -598,21 +601,16 @@ def delete_note(note_id):
 
 fb_handler = FacebookWebhookHandler()
 # Temporary store to track processed requests
-processing_requests = set()
+processing_requests = {}
 lock = threading.Lock()
 
-import traceback
 
-def remove_from_set(request_id, timeout=200):
-    """Remove request_id after timeout to prevent memory leak"""
-    try:
-        time.sleep(timeout)
-        with lock:
-            processing_requests.discard(request_id)
-        print(f"✅ Removed request_id from set: {request_id}")
-    except Exception as e:
-        print(f"⚠️ Error in remove_from_set thread: {e}")
-        traceback.print_exc()
+def cleanup_requests():
+    now = time.time()
+    expired = [rid for rid, ts in processing_requests.items() if now - ts > 1800]
+    for rid in expired:
+        del processing_requests[rid]
+        print(f"🗑️ Removed expired request_id: {rid}")
 
 
 
@@ -648,11 +646,12 @@ def webhook():
 
         # ✅ Check for duplicates
         with lock:
+            cleanup_requests()
             if request_id in processing_requests:
+                print("this request repeated")
                 return "DUPLICATE_EVENT", 200
             else:
-                processing_requests.add(request_id)
-                threading.Thread(target=remove_from_set, args=(request_id,)).start()
+                processing_requests[request_id] = time.time()
         events = fb_handler.parse_webhook_event(data)
         from reply_manager import LLMManager
         import os
