@@ -691,14 +691,14 @@ def webhook():
                 if event["sender_id"] != event["page_id"] :
                     if sub.package.is_smart:
                         text_rep = reply_manager.generate_reply(event["page_id"], event["sender_id"],event["message_text"])
-                        print(event["message_text"])
+                        print(event["comment_id"])
                         fb_handler.add_like(page_access_token, event["comment_id"])
-                        fb_handler.send_message(page_access_token, event["sender_id"], text_rep)
+                        fb_handler.send_private_reply(event["page_id"],page_access_token, event["comment_id"], text_rep)
                         fb_handler.reply_comment(page_access_token, event["comment_id"], "شكرا علي تعليقكم سيتم التواصل معكم")
                         
                         continue
                     fb_handler.add_like(page_access_token, event["comment_id"])
-                    fb_handler.send_message(page_access_token, event["sender_id"], "نشكركم علي تعليقكم اقدر اساعد حضرتك ازاي")
+                    fb_handler.send_private_reply(event["page_id"],page_access_token, event["comment_id"], "نشكركم علي تعليقكم اقدر اساعد حضرتك ازاي")
                     post = Post.query.filter(Post.post_id ==int(event["post_id"].split("_", 1)[1]),Post.page_id ==int(event["page_id"]) ).first()
                   
                     if post:

@@ -1,3 +1,4 @@
+import logging
 import requests
 
 class FacebookWebhookHandler:
@@ -86,6 +87,40 @@ class FacebookWebhookHandler:
                         })
         return events
 
+
+    def send_private_reply(self, page_id,page_access_token: str, comment_id: str, text: str):
+        """
+        Send a private reply (Messenger message) to a user who commented on your Page's post.
+        Requirements:
+          - Use a valid Page access token
+          - Comment must be on a Page-owned post
+          - Only works within 7 days of the comment
+          - Only one private reply per comment
+        """
+        # Ensure we are using the raw comment ID, not postid_commentid
+     
+        
+        url = f"{self.GRAPH_URL}/{page_id}/messages"
+        params = {"access_token": page_access_token}
+        payload = {
+        "recipient": {"comment_id": comment_id},
+        "message": {"text": text},
+        "messaging_type": "RESPONSE"
+    }
+
+        response = requests.post(url, params=params, json=payload)
+
+        try:
+            data = response.json()
+        except ValueError:
+            data = {"raw": response.text}
+        print(data)       
+        return {
+            "status": response.status_code,
+            "ok": response.ok,
+            "data": data
+        }
+        
     def send_message(self, page_access_token, recipient_id, text):
         """
         Send a message to a user via Facebook Messenger.
