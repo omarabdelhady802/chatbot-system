@@ -681,17 +681,20 @@ def webhook():
                     fb_handler.send_message(page_access_token, event["sender_id"], text_rep)
                 else:
                     page_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
+                    flag = True
                     for i in page_rep :
                         if i.key in event["message_text"]:
+                            flag = False
                             fb_handler.send_message(page_access_token, event["sender_id"], i.val)
-                        
+                    if flag:
+                        fb_handler.send_message(page_access_token, event["sender_id"], "سيتم التواصل معكم وشكرا علي تواصلكم معنا")
+                                                
 
             
             elif event["event_type"] == "comment":
                 if event["sender_id"] != event["page_id"] :
                     if sub.package.is_smart:
                         text_rep = reply_manager.generate_reply(event["page_id"], event["sender_id"],event["message_text"])
-                        print(event["comment_id"])
                         fb_handler.add_like(page_access_token, event["comment_id"])
                         fb_handler.send_private_reply(event["page_id"],page_access_token, event["comment_id"], text_rep)
                         fb_handler.reply_comment(page_access_token, event["comment_id"], "شكرا علي تعليقكم سيتم التواصل معكم")
@@ -702,23 +705,33 @@ def webhook():
                     post = Post.query.filter(Post.post_id ==int(event["post_id"].split("_", 1)[1]),Post.page_id ==int(event["page_id"]) ).first()
                   
                     if post:
+                        flag = True
                         if post.is_specific == 1 :
                             rep = Specific.query.filter(Specific.posts_post_id ==int(event["post_id"].split("_", 1)[1])).all()
                             print(event["post_id"])
                             for i in rep:
                                 if i.key in event["message_text"]:
+                                    flag = False
                                     fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)
                         else:
                             gen_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
                             for i in gen_rep:
                                 if i.key in event["message_text"]:
+                                    flag = False
                                     fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)
+                        if flag :
+                            fb_handler.reply_comment(page_access_token, event["comment_id"], "نشكركم علي تعليقكم سيتم التواصل معكم")
+                            
                     else :
+                            flag = True
                             gen_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
                             for i in gen_rep:
                                 if i.key in event["message_text"]:
+                                    flag = False
                                     fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)                           
-
+                            if flag:
+                                fb_handler.reply_comment(page_access_token, event["comment_id"], "نشكركم علي تعليقكم سيتم التواصل معكم")
+                                
         return "EVENT_RECEIVED", 200
 
 
