@@ -442,12 +442,14 @@ def manage_general_replies(client_id, platform_id, page_id):
     if request.method == "POST":
         key = request.form.get("key")
         val = request.form.get("val")
+        typee = request.form.get("typee")
         new_rep = GeneralRep(
             key=key,
             val=val,
             client_id=client_id,
             platform_id=platform_id,
-            page_id=page_id
+            page_id=page_id,
+            typee=typee
         )
         db.session.add(new_rep)
         db.session.commit()
@@ -550,8 +552,12 @@ def edit_page_description(client_id, platform_id, page_id):
     if request.method == "POST":
         description = request.form.get("description", "").strip()
         token = request.form.get("token", "").strip()
+        welcome = request.form.get("welcome", "").strip()
+        welcome_comment = request.form.get("welcome_comment", "").strip()
         page.description = description
         page.page_token = token
+        page.welcome = welcome,
+        page.comment = welcome_comment,
         try:
             db.session.commit()
             flash("Description updated successfully!", "success")
@@ -683,11 +689,12 @@ def webhook():
                     page_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
                     flag = True
                     for i in page_rep :
-                        if i.key in event["message_text"]:
-                            flag = False
-                            fb_handler.send_message(page_access_token, event["sender_id"], i.val)
+                        if page_rep == "message":
+                            if i.key in event["message_text"]:
+                                flag = False
+                                fb_handler.send_message(page_access_token, event["sender_id"], i.val)
                     if flag:
-                        fb_handler.send_message(page_access_token, event["sender_id"], "سيتم التواصل معكم وشكرا علي تواصلكم معنا")
+                        fb_handler.send_message(page_access_token, event["sender_id"], page.welcome)
                                                 
 
             
@@ -701,7 +708,7 @@ def webhook():
                         
                         continue
                     fb_handler.add_like(page_access_token, event["comment_id"])
-                    fb_handler.send_private_reply(event["page_id"],page_access_token, event["comment_id"], "نشكركم علي تعليقكم اقدر اساعد حضرتك ازاي")
+                    fb_handler.send_private_reply(event["page_id"],page_access_token, event["comment_id"], page.welcome)
                     post = Post.query.filter(Post.post_id ==int(event["post_id"].split("_", 1)[1]),Post.page_id ==int(event["page_id"]) ).first()
                   
                     if post:
@@ -716,21 +723,23 @@ def webhook():
                         else:
                             gen_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
                             for i in gen_rep:
-                                if i.key in event["message_text"]:
-                                    flag = False
-                                    fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)
+                                if gen_rep.typee == "comment":
+                                    if i.key in event["message_text"]:
+                                        flag = False
+                                        fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)
                         if flag :
-                            fb_handler.reply_comment(page_access_token, event["comment_id"], "نشكركم علي تعليقكم سيتم التواصل معكم")
+                            fb_handler.reply_comment(page_access_token, event["comment_id"],page.welcome_comment)
                             
                     else :
                             flag = True
                             gen_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
                             for i in gen_rep:
-                                if i.key in event["message_text"]:
-                                    flag = False
-                                    fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)                           
+                                if gen_rep.typee=="comment":
+                                    if i.key in event["message_text"]:
+                                        flag = False
+                                        fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)                           
                             if flag:
-                                fb_handler.reply_comment(page_access_token, event["comment_id"], "نشكركم علي تعليقكم سيتم التواصل معكم")
+                                fb_handler.reply_comment(page_access_token, event["comment_id"], page.welcome_comment)
                                 
         return "EVENT_RECEIVED", 200
 

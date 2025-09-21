@@ -13,6 +13,13 @@
         </div>
         <a href="{{ url_for('delete_general_reply', rep_id=r.id) }}" class="btn btn-danger btn-sm">حذف</a>
     </li>
+    <li class="list-group-item d-flex justify-content-between">
+        <div>
+            <strong>النوع</strong><br>
+            <small>{{ r.typee }}</small>
+        </div>
+        <a href="{{ url_for('delete_general_reply', rep_id=r.id) }}" class="btn btn-danger btn-sm">حذف</a>
+    </li>
 {% endfor %}
 </ul>
 
@@ -23,6 +30,13 @@
     <div class="mb-2">
         <textarea name="val" class="form-control" placeholder="النص" rows="4" required></textarea>
     </div>
+    <div class="mb-2">
+  <select name="typee" id="typee" class="form-control" required>
+            <option value="" disabled selected>نوع</option>
+            <option value="comment">comment</option>
+            <option value="message">message</option>
+        </select>    </div>
+    
     <button type="submit" class="btn btn-success">إضافة رد عام جديد</button>
 </form>
 

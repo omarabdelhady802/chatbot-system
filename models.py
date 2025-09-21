@@ -69,6 +69,9 @@ class ClientPage(db.Model):
     webhook_token = db.Column(db.String(80))
     name = db.Column(db.String(40))
     description = db.Column(db.Text, nullable=True)
+    welcome = db.Column(db.Text, nullable=True)
+    welcome_comment = db.Column(db.Text, nullable=True)
+    
 
     __table_args__ = (
         db.ForeignKeyConstraint(
@@ -115,6 +118,8 @@ class GeneralRep(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(100), nullable=False)
     val = db.Column(db.String(300), nullable=False)
+    typee = db.Column(db.String(30), nullable=False)
+    
 
     client_id = db.Column(db.Integer)
     platform_id = db.Column(db.Integer)
