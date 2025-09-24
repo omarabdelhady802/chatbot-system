@@ -556,8 +556,8 @@ def edit_page_description(client_id, platform_id, page_id):
         welcome_comment = request.form.get("welcome_comment", "").strip()
         page.description = description
         page.page_token = token
-        page.welcome = welcome,
-        page.comment = welcome_comment,
+        page.welcome = welcome
+        page.welcome_comment = welcome_comment
         try:
             db.session.commit()
             flash("Description updated successfully!", "success")
@@ -687,14 +687,14 @@ def webhook():
                     fb_handler.send_message(page_access_token, event["sender_id"], text_rep)
                 else:
                     page_rep = GeneralRep.query.filter(GeneralRep.page_id == event["page_id"]).all()
-                    flag = True
+                    
                     for i in page_rep :
                         if page_rep == "message":
                             if i.key in event["message_text"]:
-                                flag = False
+                                
                                 fb_handler.send_message(page_access_token, event["sender_id"], i.val)
-                    if flag:
-                        fb_handler.send_message(page_access_token, event["sender_id"], page.welcome)
+                    
+                        
                                                 
 
             
@@ -737,7 +737,8 @@ def webhook():
                                 if gen_rep.typee=="comment":
                                     if i.key in event["message_text"]:
                                         flag = False
-                                        fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)                           
+                                        fb_handler.reply_comment(page_access_token, event["comment_id"], i.val)
+                            print(flag,flush=True)
                             if flag:
                                 fb_handler.reply_comment(page_access_token, event["comment_id"], page.welcome_comment)
                                 
